@@ -357,6 +357,17 @@ class WebhookController extends \b8\Controller
             }
         }
 
+        //build on builds events
+        if(isset($payload['object_kind']) && $payload['object_kind'] == 'build') {
+        
+            $commit = $payload['commit'];             
+             
+            if($payload['build_status'] == 'success') {
+               return $this->createBuild($project,$commit['sha'],$payload['ref'],$commit['author_email'],$commit['message']);
+            }
+            
+        }
+
         // build on push events
         if (isset($payload['commits']) && is_array($payload['commits'])) {
             // If we have a list of commits, then add them all as builds to be tested:
@@ -427,7 +438,7 @@ class WebhookController extends \b8\Controller
     ) {
         // Check if a build already exists for this commit ID:
         $builds = $this->buildStore->getByProjectAndCommit($project->getId(), $commitId);
-
+        
         if ($builds['count']) {
             return array(
                 'status' => 'ignored',
